@@ -17,10 +17,11 @@ logger.setLevel(logging.INFO) #logging.DEBUG
 
 class Repo(object):
 
-  def __init__(self, r):
+  def __init__(self, r, destination):
 
     self.endpoint = r['endpoint']
     self.name = "%s.%d" % ( r['name'], time.time() )
+    self.destination = "%s/%s" % ( destination, self.name )
 
     self.backup()
 
@@ -38,7 +39,7 @@ class Repo(object):
     output = Run(cmd)
 
   def compress(self):
-    cmd = "tar -czf %s.tgz %s" % ( self.name, self.name )
+    cmd = "tar -czf %s.tgz %s" % ( self.destination, self.name )
     Run(cmd)
 
   def cleanup(self):
@@ -71,16 +72,18 @@ def Run(cmd):
 def main(argv):
 
   reposFile=None
+  destination="."
   # make sure command line arguments are valid
   try:
     options, args = getopt.getopt(
 
        argv, 
-      'hvr:', 
+      'hvr:d:', 
       [ 
         'help',
         'verbose',
-        'repos-file='
+        'repos-file=',
+        'destination='
     
       ])
  
@@ -99,6 +102,8 @@ def main(argv):
       logger.setLevel(logging.DEBUG) 
     elif opt in ('-r', '--repos-file'):
       reposFile=arg
+    elif opt in ('-d', '--destination'):
+      destination=arg
 
   ###################################
   # main code starts here
@@ -117,8 +122,7 @@ def main(argv):
     sys.exit(2)    
 
   for repo in repos:
-    r = Repo(repo)
-    print r
+    r = Repo(repo, destination)
  
 
 if __name__ == "__main__":
